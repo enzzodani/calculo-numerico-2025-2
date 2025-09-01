@@ -25,7 +25,7 @@ metodo_bissec_i_rec <- function(coefs, a, b, epsilon) {
 }
 
 # Nossos coeficientes
-meus_coefs <- c(3, -9, 0, 1)
+meus_coefs <- c(log10(x),-1)
 
 # Chama a versão recursiva
 raiz_recursiva <- metodo_bissec_i_rec(coefs = meus_coefs, a = 0, b = 1, epsilon = 0.001)
