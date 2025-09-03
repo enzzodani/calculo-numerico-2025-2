@@ -1,0 +1,1 @@
+newton <- function(funcao)
