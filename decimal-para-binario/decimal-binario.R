@@ -85,4 +85,4 @@ conversor_completo_decimal_binario <- function(numero) {
 
 
 # --- Exemplos de Uso (para teste) ---
-print(paste("Decimal 20.25 em binário é:", conversor_completo_decimal_binario(20.25)))
+print(paste("Decimal 272.937 em binário é:", conversor_completo_decimal_binario(272.937)))
