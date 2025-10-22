@@ -50,7 +50,6 @@ solve_gauss_verbose <- function(A, b) {
   }
   
   # A matriz final é A(n-1)|b(n-1)
-  # A impressão acima já mostra a matriz final A(3)|b(3) no caso de n=4
   
   # --- Início da Parte (b) da Questão ---
   cat("\n\n--- (b) Resolução do sistema A(", n-1, ")x = b(", n-1, ") ---\n")
