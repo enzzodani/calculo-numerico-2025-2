@@ -1,58 +1,87 @@
-# Vetor com os elementos
-A_v <- c(3, -2, 1,
-         1, 2, -1,
-         2, 1, 3)
+# --- Script de Fatoração LU (3x3) ---
+#
+# Instrução: Edite as matrizes A e B abaixo com os
+# valores do seu problema.
+# -----------------------------------------------
 
-B_v <- c(9, -5, 6)
+# --- DEFINA SEU SISTEMA AQUI ---
+A_v <- c(3, 2, 4,
+         1, 1, 2,
+         4, 3, -2)
+B_v <- c(1, 2, 3)
+# --------------------------------
 
 # Matrizes iniciais
 A <- matrix(A_v, nrow = 3, byrow = TRUE)
 B <- matrix(B_v, nrow = 3, byrow = FALSE)
+n <- 3
 
-cat("Matriz A original:\n")
-print(A)
-cat("\nVetor B original:\n")
-print(B)
+cat("--- Matrizes Originais ---\n")
+cat("Matriz A (A0):\n"); print(A)
+cat("\nVetor B:\n"); print(B)
 
-# --- PASSO 1: Zerar a primeira coluna ---
+# --- PASSO 1: Zerar a primeira coluna (k=1) ---
 m21 <- A[2, 1] / A[1, 1]
 m31 <- A[3, 1] / A[1, 1]
 
-M <- c(1, 0, 0, -m21, 1, 0, -m31, 0, 1)
-M0 <- matrix(M, nrow = 3, byrow = TRUE)
+M0t <- c(1, 0, 0, 
+        -m21, 1, 0,
+        -m31, 0, 1)
+M0 <- matrix(M0t, nrow = n, byrow = TRUE)
 
-# Aplica a transformação
 A1 <- M0 %*% A
-M0b <- M0 %*% B
+B1 <- M0 %*% B
 
-cat("\nMatriz A após a primeira eliminação (A1):\n")
-print(A1)
+cat("\n--- Após Passo 1 ---\n")
+cat("M0:\n"); print(M0)
+cat("A1:\n"); print(A1)
 
-# --- PASSO 2: Zerar a segunda coluna ---
+
+# --- PASSO 2: Zerar a segunda coluna (k=2) ---
 m32 <- A1[3, 2] / A1[2, 2]
-M1l <- c(1, 0, 0, 0, 1, 0, 0, -m32, 1)
-M1 <- matrix(M1l, nrow = 3, byrow = TRUE)
 
-# Aplicar M1 em A1 para obter U e em M0b para obter Y
+M1t <- c(1, 0, 0, 
+         0, 1, 0,
+         0, -m32, 1)
+M1 <- matrix(M1t, nrow = n, byrow = TRUE)
+
+# U é a matriz triangular superior final
+# Y é o vetor de resultados final (solução de Ly = b)
 U <- M1 %*% A1
-Y <- M1 %*% M0b
+Y <- M1 %*% B1
 
-cat("\nMatriz triangular superior final (U):\n")
-print(U)
-cat("\nVetor transformado final (Y):\n")
+cat("\n--- Após Passo 2 (Final) ---\n")
+cat("M1:\n"); print(M1)
+cat("U (A2):\n"); print(U)
+cat("Y (B2):\n"); print(Y)
+
+
+# --- Montagem da Matriz L ---
+L <- matrix(0, nrow = n, ncol = n)
+diag(L) <- 1
+L[2, 1] <- m21
+L[3, 1] <- m31
+L[3, 2] <- m32
+
+cat("\n--- Matrizes L e U ---\n")
+cat("L:\n"); print(L)
+cat("U:\n"); print(U)
+# Verificação (L %*% U deve ser igual a A)
+cat("Verificação (L %*% U):\n"); print(L %*% U)
+
+# --- Resolução do Sistema ---
+
+# (b) Solução de Ly = b
+# O vetor Y calculado (Y = M1 %*% M0 %*% B) já é a solução de Ly=b
+cat("\n--- (b) Solução de Ly = b (vetor Y) ---\n")
 print(Y)
 
+# (c) Solução de Ux = y (Retrosubstituição)
+x <- numeric(n)
 
-x <- numeric(3) # Vetor para armazenar a solução x1, x2, x3
-
-# Resolvendo para x3
 x[3] <- Y[3] / U[3, 3]
+x[2] <- (Y[2] - U[2, 3] * x[3]) / U[2, 2]
+x[1] <- (Y[1] - U[1, 2] * x[2] - U[1, 3] * x[3]) / U[1, 1]
 
-# Resolvendo para x2
-x[2] <- (Y[2] - U[2, 3] * x[3]) / U[2, 2] 
-
-# Resolvendo para x1
-x[1] <- round((Y[1] - U[1, 2] * x[2] - U[1, 3] * x[3]) / U[1, 1]) 
-
-cat("\nSolução final (vetor x):\n")
+cat("\n--- (c) Solução de Ux = y (vetor x) ---\n")
 print(x)

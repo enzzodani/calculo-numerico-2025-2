@@ -1,58 +1,108 @@
+# --- Funções Genéricas: Fatoração de Cholesky ---
+#
+# Este conjunto de funções resolve um sistema Ax = b
+# pelo método de Cholesky.
+# ----------------------------------------------------
 
-at <- c(1,2,2,2,5,1,2,1,14)
-bt <- c(-3,-1,-23)
-
-A <- matrix(at, nrow = 3, byrow = TRUE)
-b <- matrix(bt, nrow = 3, byrow = FALSE)
-
-
-resolution_lower <- function(A, b, n) {
-
-  xt <- c(0,0,0)
-
-  X <- matrix(xt, nrow = 3, byrow = FALSE)
-
-  X[1] <- b[1] / A[1,1]
-
-  for (k in 2:n) {
-    soma <- 0
-    for (j in 1:(k-1)) {
-      soma <- soma + A[k,j]*X[j]
-    }
-    X[k] <- (b[k] - soma)/A[k,k]
-  }
-
-  return(X)
-}
-
-y <- resolution_lower(A,b,3)
-
-fatoracao_cholesky <- function(A, n) {
-  # Cria uma matriz L preenchida com zeros
-  L <- matrix(0, nrow = n, ncol = n)
-
+# 1. Função de Fatoração (A = G * G^T)
+fatoracao_cholesky <- function(A) {
+  n <- nrow(A)
+  G <- matrix(0, nrow = n, ncol = n)
+  
   for (j in 1:n) {
-    # --- Cálculo do elemento da diagonal L[j,j] ---
+    # --- Cálculo do elemento da diagonal G[j,j] ---
     soma_diag <- 0
     if (j > 1) {
-      for (k in 1:(j-1)) {
-        soma_diag <- soma_diag + L[j,k]^2
+      for (k in 1:(j - 1)) {
+        soma_diag <- soma_diag + G[j, k]^2
       }
     }
-    L[j,j] <- sqrt(A[j,j] - soma_diag)
-
+    # Checagem de estabilidade (A[j,j] - soma_diag deve ser > 0)
+    termo_diag <- A[j, j] - soma_diag
+    if (termo_diag <= 0) {
+      stop("A matriz não é positiva definida.")
+    }
+    G[j, j] <- sqrt(termo_diag)
+    
     # --- Cálculo dos elementos abaixo da diagonal na coluna j ---
     if (j < n) {
-      for (i in (j+1):n) {
+      for (i in (j + 1):n) {
         soma_off_diag <- 0
         if (j > 1) {
-          for (k in 1:(j-1)) {
-            soma_off_diag <- soma_off_diag + L[i,k]*L[j,k]
+          for (k in 1:(j - 1)) {
+            soma_off_diag <- soma_off_diag + G[i, k] * G[j, k]
           }
         }
-        L[i,j] <- (A[i,j] - soma_off_diag) / L[j,j]
+        G[i, j] <- (A[i, j] - soma_off_diag) / G[j, j]
       }
     }
   }
-  return(L)
+  return(G)
 }
+
+# 2. Função de Substituição Direta (Resolve Ly = b)
+forward_substitution <- function(L, b) {
+  n <- nrow(L)
+  y <- numeric(n)
+  
+  for (i in 1:n) {
+    soma <- 0
+    if (i > 1) {
+      for (j in 1:(i - 1)) {
+        soma <- soma + L[i, j] * y[j]
+      }
+    }
+    y[i] <- (b[i] - soma) / L[i, i]
+  }
+  return(y)
+}
+
+# 3. Função de Retrosubstituição (Resolve Ux = y)
+back_substitution <- function(U, y) {
+  n <- nrow(U)
+  x <- numeric(n)
+  
+  for (i in n:1) {
+    soma <- 0
+    if (i < n) {
+      for (j in (i + 1):n) {
+        soma <- soma + U[i, j] * x[j]
+      }
+    }
+    x[i] <- (y[i] - soma) / U[i, i]
+  }
+  return(x)
+}
+
+
+# --- Exemplo de uso (Q3 da Prova) ---
+A_q3 <- matrix(c(
+  25,  5,  10,  5,
+   5, 10,   5,  7,
+  10,  5, 105, 34,
+   5,  7,  34, 30
+), nrow = 4, byrow = TRUE)
+
+b_q3 <- c(5, 40, 165, 152)
+
+# Passo (a): Apresente G e G^T
+cat("\n--- (a) Fatoração de Cholesky ---\n")
+G <- fatoracao_cholesky(A_q3)
+Gt <- t(G)
+
+cat("Matriz G:\n")
+print(G)
+cat("\nMatriz G^T:\n")
+print(Gt)
+
+# Passo (b): Resolva Gy = b
+cat("\n--- (b) Solução de Gy = b (vetor y) ---\n")
+y <- forward_substitution(G, b_q3)
+print(y)
+# Resultado esperado (da prova): 1, 13, 15, 20
+
+# Passo (c): Resolva G^T x = y
+cat("\n--- (c) Solução de G^T x = y (vetor x) ---\n")
+x <- back_substitution(Gt, y)
+print(x)
+# Resultado esperado (da prova): -1, 1, 0, 5
